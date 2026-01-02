@@ -1,0 +1,5 @@
+<Bindings>
+    <Binding name="ASCENSIONNOTES_TOGGLE" header="ASCENSIONNOTES_HEADER">
+        AscensionNotes:ToggleWindow()
+    </Binding>
+</Bindings>

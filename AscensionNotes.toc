@@ -1,0 +1,18 @@
+## Interface: 110000
+## Title: Ascension Notes
+## Notes: A minimalist, resizable note-taking addon.
+## Author: You
+## Version: 1.0
+## SavedVariables: AscensionNotesDB
+## OptionalDeps: Ace3
+
+# Libraries (Ensure you have these or embed them)
+# Libs\LibStub\LibStub.lua
+# Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+# Libs\AceAddon-3.0\AceAddon-3.0.xml
+# Libs\AceDB-3.0\AceDB-3.0.xml
+# Libs\AceGUI-3.0\AceGUI-3.0.xml
+# Libs\AceConfig-3.0\AceConfig-3.0.xml
+
+Bindings.xml
+AscensionNotes.lua
