@@ -2,20 +2,19 @@
 -- Addon Initialization
 -- ----------------------------------------------------------------------------
 local addonName = "AscensionNotes"
-local AscensionNotes = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0")
+AscensionNotes = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "AceEvent-3.0")
 local AceGUI = LibStub("AceGUI-3.0")
-
--- Localized globals for binding headers (displayed in WoW Options)
-_G["BINDING_HEADER_ASCENSIONNOTES_HEADER"] = "Ascension Notes"
-_G["BINDING_NAME_ASCENSIONNOTES_TOGGLE"] = "Toggle Notes Window"
+local AceConfig = LibStub("AceConfig-3.0")
+local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 
 -- Default database profile
 local defaults = {
     profile = {
-        notes = {}, -- Structure: { ["Note Title"] = "Note Content" }
-        windowState = { -- Saved window position/size
-            width = 600,
-            height = 400,
+        notes = {}, 
+        toggleKey = nil,
+        windowState = {
+            width = 700, -- Wider by default for better writing space
+            height = 500,
             point = "CENTER",
             relativePoint = "CENTER",
             x = 0,
@@ -30,68 +29,87 @@ local treeGroup = nil
 local editorBox = nil
 local currentNoteTitle = nil
 
+-- Global invisible button for Keybinding
+local toggleButton = CreateFrame("Button", "AscensionNotes_ToggleBtn", UIParent)
+toggleButton:SetScript("OnClick", function() 
+    if AscensionNotes then AscensionNotes:QuickNewNote() end 
+end)
+
+-- ----------------------------------------------------------------------------
+-- Options Table (AceConfig)
+-- ----------------------------------------------------------------------------
+local options = {
+    name = "Ascension Notes",
+    handler = AscensionNotes,
+    type = "group",
+    args = {
+        keybindHeader = {
+            type = "header",
+            name = "Shortcuts",
+            order = 1,
+        },
+        toggleKey = {
+            type = "keybinding",
+            name = "Quick Note Keybind",
+            desc = "Pressing this key creates a 'Quick Note' immediately and lets you write.",
+            order = 2,
+            get = function() return AscensionNotes.db.profile.toggleKey end,
+            set = function(info, key)
+                local oldKey = AscensionNotes.db.profile.toggleKey
+                if oldKey then SetBinding(oldKey, nil) end
+                AscensionNotes.db.profile.toggleKey = key
+                if key then SetBindingClick(key, "AscensionNotes_ToggleBtn") end
+            end,
+        },
+    },
+}
+
 -- ----------------------------------------------------------------------------
 -- Lifecycle Methods
 -- ----------------------------------------------------------------------------
 
 function AscensionNotes:OnInitialize()
-    -- Initialize Database
     self.db = LibStub("AceDB-3.0"):New("AscensionNotesDB", defaults, true)
+    AceConfig:RegisterOptionsTable("AscensionNotes", options)
+    AceConfigDialog:AddToBlizOptions("AscensionNotes", "Ascension Notes")
     
-    -- Register chat command for manual opening
-    self:RegisterChatCommand("anotes", "ToggleWindow")
-    self:RegisterChatCommand("ascensionnotes", "ToggleWindow")
+    self:RegisterChatCommand("an", "OpenMenu")
+    self:RegisterChatCommand("anotes", "OpenMenu")
+    self:RegisterChatCommand("ascensionnotes", "OpenMenu")
+    
+    local savedKey = self.db.profile.toggleKey
+    if savedKey and not InCombatLockdown() then
+        SetBindingClick(savedKey, "AscensionNotes_ToggleBtn")
+    end
 end
 
 -- ----------------------------------------------------------------------------
 -- Logic & Data Handling
 -- ----------------------------------------------------------------------------
 
---- Saves the current text to the database
--- @param title: The title of the note (string)
--- @param text: The content of the note (string)
 function AscensionNotes:SaveNote(title, text)
     if not title or title == "" then return end
-    
-    -- Safety check: Ensure DB exists
     if not self.db or not self.db.profile then return end
-
     self.db.profile.notes[title] = text or ""
 end
 
---- Deletes a note
--- @param title: The title of the note to delete
 function AscensionNotes:DeleteNote(title)
     if not title or not self.db then return end
-    
     self.db.profile.notes[title] = nil
-    
-    -- Reset selection if we deleted the active note
     if currentNoteTitle == title then
         currentNoteTitle = nil
         if editorBox then editorBox:SetText("") end
     end
-    
     self:RefreshNoteList()
 end
 
---- Converts DB table to AceGUI Tree structure
--- @return table: formatted for AceGUI TreeGroup
 function AscensionNotes:GetNoteListForTree()
     local treeData = {}
-    
     if not self.db then return treeData end
-
     for title, _ in pairs(self.db.profile.notes) do
-        table.insert(treeData, {
-            value = title,
-            text = title,
-        })
+        table.insert(treeData, { value = title, text = title })
     end
-    
-    -- Sort alphabetically for UX
     table.sort(treeData, function(a, b) return a.text < b.text end)
-    
     return treeData
 end
 
@@ -99,26 +117,21 @@ end
 -- UI Construction (AceGUI)
 -- ----------------------------------------------------------------------------
 
---- Creates the main window frame if it doesn't exist
 function AscensionNotes:CreateFrame()
     if mainFrame then return end
-
-    -- 1. Main Window Container
+    
+    -- Main Container
     local frame = AceGUI:Create("Window")
     frame:SetTitle("Ascension Notes")
     frame:SetLayout("Fill")
     frame:EnableResize(true)
     
-    -- Apply saved dimensions
     local ws = self.db.profile.windowState
     if ws then
-        frame:SetWidth(ws.width or 600)
-        frame:SetHeight(ws.height or 400)
-        -- Note: Point restoration requires standard frame API manipulation if AceGUI doesn't auto-handle it fully,
-        -- but AceGUI windows generally persist nicely if not manually reset.
+        frame:SetWidth(ws.width or 700)
+        frame:SetHeight(ws.height or 500)
     end
 
-    -- Save position on close
     frame:SetCallback("OnClose", function(widget)
         AceGUI:Release(widget)
         mainFrame = nil
@@ -126,13 +139,12 @@ function AscensionNotes:CreateFrame()
         editorBox = nil
     end)
 
-    -- 2. Tree Group (Sidebar for List, Main area for Content)
+    -- Split View (Sidebar | Content)
     local tree = AceGUI:Create("TreeGroup")
     tree:SetLayout("Flow")
-    tree:SetTreeWidth(150, false) -- 150px sidebar
+    tree:SetTreeWidth(180, false) -- Slightly wider sidebar for readability
     tree:EnableButtonTooltips(false)
     
-    -- Callback: When a note is selected in the list
     tree:SetCallback("OnGroupSelected", function(widget, event, uniqueValue)
         currentNoteTitle = uniqueValue
         AscensionNotes:DrawEditor(tree)
@@ -142,56 +154,70 @@ function AscensionNotes:CreateFrame()
     treeGroup = tree
     mainFrame = frame
 
-    -- Populate the list
     self:RefreshNoteList()
 end
 
---- Refreshes the sidebar list data
 function AscensionNotes:RefreshNoteList()
     if not treeGroup then return end
-    
     local data = self:GetNoteListForTree()
     treeGroup:SetTree(data)
     
-    -- Reselect current note if it still exists
     if currentNoteTitle and self.db.profile.notes[currentNoteTitle] then
         treeGroup:SelectByValue(currentNoteTitle)
     else
         currentNoteTitle = nil
+        self:DrawEditor(treeGroup)
     end
 end
 
---- Draws the Editor view inside the TreeGroup content area
--- @param container: The AceGUI container to draw into
+-- Applies UI/UX Principles: Hierarchy, Space, Minimalism
 function AscensionNotes:DrawEditor(container)
-    container:ReleaseChildren() -- Clear previous elements
-
-    -- If no note is selected, show the "New Note" interface
+    container:ReleaseChildren()
+    
     if not currentNoteTitle then
         self:DrawWelcomeScreen(container)
         return
     end
 
-    -- 1. Toolbar (Title and Delete Button)
-    local heading = AceGUI:Create("Heading")
-    heading:SetText(currentNoteTitle)
-    heading:SetFullWidth(true)
-    container:AddChild(heading)
+    -- 1. HEADER GROUP (Horizontal Layout)
+    -- Creates a clear visual hierarchy for the Title and the Actions
+    local headerGroup = AceGUI:Create("SimpleGroup")
+    headerGroup:SetFullWidth(true)
+    headerGroup:SetLayout("Flow")
+    container:AddChild(headerGroup)
 
-    -- 2. Multi-Line Text Editor
+    -- 1a. Title (Dominant Visual Element)
+    local titleLabel = AceGUI:Create("Label")
+    titleLabel:SetText(currentNoteTitle)
+    titleLabel:SetFontObject(GameFontNormalHuge) -- Large font for Hierarchy
+    titleLabel:SetColor(1, 1, 1) -- White for contrast
+    titleLabel:SetRelativeWidth(0.75) -- Takes up 75% of width
+    headerGroup:AddChild(titleLabel)
+
+    -- 1b. Delete Action (Minimalist, Accent Color)
+    -- Replaces the large button at the bottom. 
+    -- Placed top-right to be accessible but not intrusive.
+    local deleteBtn = AceGUI:Create("Button")
+    deleteBtn:SetText("Delete")
+    deleteBtn:SetRelativeWidth(0.24)
+    -- We can't easily style Ace3 buttons to be flat, but we can keep it small.
+    deleteBtn:SetCallback("OnClick", function()
+        AscensionNotes:DeleteNote(currentNoteTitle)
+    end)
+    headerGroup:AddChild(deleteBtn)
+
+    -- 2. EDITOR AREA (Focus)
+    -- Simple scrolling text box that dominates the screen.
     local editBox = AceGUI:Create("MultiLineEditBox")
-    editBox:SetLabel("")
+    editBox:SetLabel("") -- No label, cleaner look
     editBox:SetFullWidth(true)
-    editBox:SetNumLines(20) -- Starts with reasonable height, expands with window
-    editBox:DisableButton(true) -- Hide the "Accept" button, we auto-save
+    editBox:SetNumLines(25) -- Fills the vertical space
+    editBox:DisableButton(true) -- Removes "Accept" button for minimalism
     
-    -- Load text (Nil Check: Ensure text is string)
     local noteText = self.db.profile.notes[currentNoteTitle] or ""
     editBox:SetText(noteText)
 
-    -- Callback: Auto-save on text change
     editBox:SetCallback("OnTextChanged", function(widget, event, text)
-        -- Nil check for text
         if currentNoteTitle then
             AscensionNotes:SaveNote(currentNoteTitle, text or "")
         end
@@ -199,55 +225,92 @@ function AscensionNotes:DrawEditor(container)
 
     container:AddChild(editBox)
     editorBox = editBox
-
-    -- 3. Delete Button (Bottom)
-    local deleteBtn = AceGUI:Create("Button")
-    deleteBtn:SetText("Delete Note")
-    deleteBtn:SetWidth(120)
-    deleteBtn:SetCallback("OnClick", function()
-        AscensionNotes:DeleteNote(currentNoteTitle)
-    end)
-    container:AddChild(deleteBtn)
 end
 
---- Draws the "Welcome / New Note" screen
+-- Applies UI/UX Principles: deliberate whitespace, clear single action
 function AscensionNotes:DrawWelcomeScreen(container)
+    -- Spacer for vertical centering (Visual Breathing Room)
+    local spacerTop = AceGUI:Create("Label")
+    spacerTop:SetText("\n\n\n\n") 
+    container:AddChild(spacerTop)
+
+    -- Instruction (Subtle Hierarchy)
     local info = AceGUI:Create("Label")
-    info:SetText("\nSelect a note from the left or create a new one.\n")
+    info:SetText("Create a new note")
+    info:SetFontObject(GameFontNormalLarge)
+    info:SetJustifyH("CENTER")
     info:SetFullWidth(true)
+    info:SetColor(0.7, 0.7, 0.7) -- Soft gray
     container:AddChild(info)
 
-    -- New Note Input
+    -- Input (The Primary Action)
     local nameBox = AceGUI:Create("EditBox")
-    nameBox:SetLabel("New Note Title")
-    nameBox:SetWidth(200)
+    nameBox:SetLabel("") -- Clean, no label needed if context is clear
+    nameBox:SetWidth(250) -- Limited width for focus
     nameBox:DisableButton(false)
+    
+    -- Center the editbox roughly by wrapping it in a group with padding (Logic)
+    -- AceGUI flow is tricky for centering, so we rely on the container flow.
     
     nameBox:SetCallback("OnEnterPressed", function(widget, event, text)
         if text and text ~= "" then
-            -- Create empty note
             AscensionNotes:SaveNote(text, "")
-            -- Refresh list
             AscensionNotes:RefreshNoteList()
-            -- Select the new note
+            
+            currentNoteTitle = text
             if treeGroup then
                 treeGroup:SelectByValue(text)
+                AscensionNotes:DrawEditor(treeGroup)
             end
         end
     end)
     
     container:AddChild(nameBox)
+    nameBox:SetFocus()
 end
 
 -- ----------------------------------------------------------------------------
--- Public API / Keybind Handler
+-- Public API & Shortcuts
 -- ----------------------------------------------------------------------------
 
-function AscensionNotes:ToggleWindow()
-    if mainFrame and mainFrame:IsShown() then
+function AscensionNotes:QuickNewNote()
+    if not mainFrame then self:CreateFrame() end
+    mainFrame:Show()
+    
+    -- Timestamped title for instant utility
+    local timestamp = date("%I:%M %p") -- Simplified Time Format (12h)
+    local newTitle = "Quick Note " .. timestamp
+    
+    -- Handle duplicate names in the same minute
+    if self.db.profile.notes[newTitle] then
+        newTitle = newTitle .. " (" .. date("%S") .. ")"
+    end
+    
+    self:SaveNote(newTitle, "")
+    currentNoteTitle = newTitle
+    self:RefreshNoteList() 
+    
+    if treeGroup then
+        treeGroup:SelectByValue(newTitle)
+        self:DrawEditor(treeGroup) 
+    end
+    
+    if editorBox and editorBox.editBox then
+        editorBox.editBox:SetFocus()
+    end
+end
+
+function AscensionNotes:OpenMenu()
+    if not mainFrame then self:CreateFrame() end
+    
+    if mainFrame:IsShown() and currentNoteTitle == nil then
         mainFrame:Hide()
     else
-        self:CreateFrame()
         mainFrame:Show()
+        currentNoteTitle = nil
+        if treeGroup then
+            treeGroup:SelectByValue(nil)
+            self:DrawEditor(treeGroup)
+        end
     end
 end
