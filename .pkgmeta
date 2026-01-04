@@ -1,6 +1,5 @@
 # .pkgmeta
 package-as: AscensionNotes
-enable-nolib-creation: no
 
 ignore:
     - .git
