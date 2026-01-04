@@ -1,2 +1,6 @@
 .DS_Store
 Libs/
+.WoWNotesData_Instances
+.WoWNotesData_Professions
+.WoWNotesData_Vendors
+.WoWNotes
