@@ -16,27 +16,6 @@ externals:
     Libs/CallbackHandler-1.0:
         url: https://github.com/BigWigsMods/CallbackHandler-1.0
         tag: latest
-    Libs/AceAddon-3.0:
+    Libs/Ace3:
         url: https://github.com/WoWAce/Ace3
-        subpath: AceAddon-3.0
-        tag: latest
-    Libs/AceDB-3.0:
-        url: https://github.com/WoWAce/Ace3
-        subpath: AceDB-3.0
-        tag: latest
-    Libs/AceEvent-3.0:
-        url: https://github.com/WoWAce/Ace3
-        subpath: AceEvent-3.0
-        tag: latest
-    Libs/AceConsole-3.0:
-        url: https://github.com/WoWAce/Ace3
-        subpath: AceConsole-3.0
-        tag: latest
-    Libs/AceGUI-3.0:
-        url: https://github.com/WoWAce/Ace3
-        subpath: AceGUI-3.0
-        tag: latest
-    Libs/AceConfig-3.0:
-        url: https://github.com/WoWAce/Ace3
-        subpath: AceConfig-3.0
         tag: latest

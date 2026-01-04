@@ -1,5 +1,5 @@
 <Bindings xmlns="http://www.blizzard.com/wow/ui/">
     <Binding name="ASCENSIONNOTES_TOGGLE" header="ASCENSIONNOTES_HEADER">
-        if AscensionNotes then AscensionNotes:ToggleWindow() end
+        if AscensionNotes then AscensionNotes:OpenMenu() end
     </Binding>
 </Bindings>
