@@ -176,6 +176,59 @@ function AN:StyleInputBox(editBox)
 end
 
 -- ----------------------------------------------------------------------------
+-- POPUP DIALOGS
+-- ----------------------------------------------------------------------------
+
+StaticPopupDialogs["ASCENSION_NEW_CATEGORY"] = {
+    text = "Enter new category name:",
+    button1 = "Create",
+    button2 = "Cancel",
+    hasEditBox = true,
+    maxLetters = 30,
+    OnAccept = function(self)
+        local text = self.editBox:GetText()
+        if text and text ~= "" then
+            -- Check for duplicates
+            local exists = false
+            if AscensionNotesDB and AscensionNotesDB.categories then
+                for _, cat in ipairs(AscensionNotesDB.categories) do
+                    if cat == text then
+                        exists = true
+                        break
+                    end
+                end
+                
+                if not exists then
+                    table.insert(AscensionNotesDB.categories, text)
+                    if AN and AN.UpdateSidebar then
+                        AN:UpdateSidebar()
+                    end
+                else
+                    print("|cffff0000Ascension Notes:|r Category already exists.")
+                end
+            end
+        end
+    end,
+    EditBoxOnEnterPressed = function(self)
+        local parent = self:GetParent()
+        if parent then
+            StaticPopup_OnClick(parent, 1)
+        end
+    end,
+    OnShow = function(self)
+        self.editBox:SetFocus()
+    end,
+    OnHide = function(self)
+        ChatEdit_FocusActiveWindow()
+        self.editBox:SetText("")
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3,
+}
+
+-- ----------------------------------------------------------------------------
 -- BINDING SETUP (INVISIBLE BUTTONS)
 -- ----------------------------------------------------------------------------
 local function SetupBindings()
@@ -393,13 +446,32 @@ function AN:CreateMainFrame()
     sidebarFrame:SetPoint("BOTTOMLEFT", 8, 8)
     sidebarFrame:SetWidth(SIDEBAR_WIDTH)
     sidebarFrame:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8" })
-    sidebarFrame:SetBackdropColor(unpack(COLORS.sidebar_bg)) 
+    -- Nil check for sidebar_bg color before unpacking
+    if COLORS.sidebar_bg then
+        sidebarFrame:SetBackdropColor(unpack(COLORS.sidebar_bg)) 
+    end
 
+    -- Add Category Button (New implementation)
+    local addCatBtn = self:CreateStyledButton(sidebarFrame, "+ Category", "normal")
+    if addCatBtn then
+        addCatBtn:SetSize(SIDEBAR_WIDTH - 10, 24)
+        addCatBtn:SetPoint("BOTTOM", 0, 5)
+        addCatBtn:SetScript("OnClick", function()
+            StaticPopup_Show("ASCENSION_NEW_CATEGORY")
+        end)
+    end
+
+    -- Sidebar Scroll Frame
     local sbScroll = CreateFrame("ScrollFrame", nil, sidebarFrame)
-    sbScroll:SetAllPoints()
+    sbScroll:SetPoint("TOPLEFT", 0, 0)
+    sbScroll:SetPoint("TOPRIGHT", 0, 0)
+    -- Attach bottom of scroll to the top of the Add button
+    sbScroll:SetPoint("BOTTOM", addCatBtn, "TOP", 0, 5)
+    
     local sbContent = CreateFrame("Frame", nil, sbScroll)
     sbContent:SetSize(SIDEBAR_WIDTH, 500)
     sbScroll:SetScrollChild(sbContent)
+    
     self.sidebarScroll = sbScroll
     self.sidebarScroll.content = sbContent
 
@@ -661,18 +733,31 @@ function AN:OpenEditor(noteData)
         catBtn:SetPoint("BOTTOMRIGHT", -20, 60)
         catBtn:SetFrameLevel(f:GetFrameLevel() + 5) 
         catBtn:SetScript("OnClick", function(self)
-            local cats = AscensionNotesDB.categories or {}
+            local cats = {}
+            if AscensionNotesDB and AscensionNotesDB.categories then
+                cats = AscensionNotesDB.categories
+            end
             local current = self.selectedCat
-            local nextCat, found = nil, false
+            local nextCat = nil
+            local found = false
             for i, c in ipairs(cats) do
                 if c == current then
-                    nextCat = cats[i+1]
-                    found = true; break
+                    local nextIndex = i + 1
+                    if nextIndex > #cats then
+                        nextIndex = 1
+                    end
+                    nextCat = cats[nextIndex]
+                    found = true
+                    break
                 end
             end
-            if not found and #cats > 0 then nextCat = cats[1] end
+            if not found and #cats > 0 then 
+                nextCat = cats[1] 
+            end
             self.selectedCat = nextCat
-            self.text:SetText(nextCat or "Uncategorized")
+            if self.text then
+                self.text:SetText(nextCat or "Uncategorized")
+            end
         end)
         f.categoryBtn = catBtn
 
