@@ -2,7 +2,7 @@
 -- Project: AscensionNotes
 -- Author: Aka-DoctorCode 
 -- File: Config.lua
--- Version: 11
+-- Version: @project-version@
 -------------------------------------------------------------------------------
 -- Copyright (c) 2025–2026 Aka-DoctorCode. All Rights Reserved.
 --

@@ -2,7 +2,7 @@
 ## Title: Ascension Notes
 ## Notes: A minimalist, resizable note-taking addon.
 ## Author: AkaDoctorCode
-## Version: 11
+## Version: @project-version@
 ## SavedVariables: AscensionNotesDB
 ## IconTexture: Interface\AddOns\AscensionNotes\Media\AkaDoctorCode.png
 
