@@ -3,7 +3,6 @@ license-output: LICENSE
 ignore:
     - __MACOSX
     - pkgmeta.yaml
-    
 manual-changelog: 
     filename: CHANGELOG.txt
     markup-type: html

@@ -1,12 +1,13 @@
 ## Interface: 120001
 ## Title: Ascension Notes
-## Notes: A minimalist and fast addon.
+## Notes: A minimalist and fast note taking add-on.
 ## Author: Aka-DoctorCode
-## Category: User Interface
+## Category: Tools
 ## Version: @project-version@
 ## SavedVariables: AscensionNotesDB
 ## IconTexture: Interface\AddOns\AscensionNotes\Media\AkaDoctorCode.png
 ## X-Curse-Project-ID: 1419145
+# X-Wago-ID:
 
 Config.lua
 Utils.lua
