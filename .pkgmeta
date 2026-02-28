@@ -1,12 +1,9 @@
 package-as: AscensionNotes
-
-enable-nolib-creation: no
-
+license-output: LICENSE
 ignore:
-    - .git
-    - .gitignore
-    - .vscode
     - __MACOSX
-    - .DS_Store
-    - .pkgmeta
-    - .txt
+    - pkgmeta.yaml
+    
+manual-changelog: 
+    filename: CHANGELOG.txt
+    markup-type: html
