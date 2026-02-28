@@ -20,7 +20,7 @@ jobs:
       - name: Build and Deploy
         uses: BigWigsMods/packager@v2
         env:
-          CURSEFORGE_API_KEY: ${{ secrets.CF_API_KEY }}
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
           GITHUB_OAUTH: ${{ github.token }}
       
       # - name: Create Package
