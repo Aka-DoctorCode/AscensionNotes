@@ -3,11 +3,11 @@
 ## Notes: A minimalist and fast note taking add-on.
 ## Author: Aka-DoctorCode
 ## Category: Tools
-## Version: V13
+## Version: @project-version@
 ## SavedVariables: AscensionNotesDB
 ## IconTexture: Interface\AddOns\AscensionNotes\Media\AkaDoctorCode.png
 ## X-Curse-Project-ID: 1419145
-# X-Wago-ID:
+## X-Wago-ID: mNw7vlNo
 
 Config.lua
 Utils.lua
