@@ -1,6 +1,4 @@
-<h1>@project-version@</h1>
+<h1>V13</h1>
 <ul>
-    <li>Wago initial release</li>
+    <li>.toc update</li>
 </ul>
-<br>
-<h3>Positive feedback is always appreciated, it helps me to continue working on this project</h3>

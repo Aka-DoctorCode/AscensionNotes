@@ -2,7 +2,7 @@
 -- Project: AscensionNotes
 -- Author: Aka-DoctorCode 
 -- File: Editor.lua
--- Version: @project-version@
+-- Version: V13
 -------------------------------------------------------------------------------
 -- Copyright (c) 2025–2026 Aka-DoctorCode. All Rights Reserved.
 --
