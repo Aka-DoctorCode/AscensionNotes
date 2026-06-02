@@ -2,14 +2,9 @@
 -- Project: AscensionNotes
 -- Author: Aka-DoctorCode
 -- File: AscensionNotes.lua
--- Version: V13
 -------------------------------------------------------------------------------
--- Copyright (c) 2025–2026 Aka-DoctorCode. All Rights Reserved.
---
--- This software and its source code are the exclusive property of the author.
--- No part of this file may be copied, modified, redistributed, or used in
--- derivative works without express written permission.
--------------------------------------------------------------------------------
+---@diagnostic disable: undefined-global, undefined-field, inject-field
+
 local addonName, NS = ...
 local AN = NS.AN
 

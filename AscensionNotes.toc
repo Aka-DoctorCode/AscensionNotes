@@ -3,7 +3,7 @@
 ## Notes: A minimalist and fast note taking add-on.
 ## Author: Aka-DoctorCode
 ## Category: Tools
-## Version: @project-version@
+## Version: V15
 ## SavedVariables: AscensionNotesDB
 ## IconTexture: Interface\AddOns\AscensionNotes\Media\AkaDoctorCode.png
 ## X-Curse-Project-ID: 1419145
