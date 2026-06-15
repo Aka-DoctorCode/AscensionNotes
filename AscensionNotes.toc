@@ -1,9 +1,9 @@
-## Interface: 120005
+## Interface: 120007
 ## Title: Ascension Notes
 ## Notes: A minimalist and fast note taking add-on.
 ## Author: Aka-DoctorCode
 ## Category: Tools
-## Version: V15
+## Version: @project-version@
 ## SavedVariables: AscensionNotesDB
 ## IconTexture: Interface\AddOns\AscensionNotes\Media\AkaDoctorCode.png
 ## X-Curse-Project-ID: 1419145
