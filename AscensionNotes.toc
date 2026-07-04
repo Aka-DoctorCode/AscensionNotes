@@ -9,9 +9,9 @@
 ## X-Curse-Project-ID: 1419145
 ## X-Wago-ID: mNw7vlNo
 
-Config.lua
-Utils.lua
-Settings.lua
-Main.lua
-Editor.lua
-AscensionNotes.lua
+Config/Config.lua
+Core/Utils.lua
+Config/Settings.lua
+Core/Main.lua
+Core/Editor.lua
+Core/AscensionNotes.lua
